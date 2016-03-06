@@ -1,0 +1,5 @@
+wrap: 0
+quiet: 1
+char-encoding: utf8
+input-xml: 1
+output-html: 1

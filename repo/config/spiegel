@@ -1,0 +1,7 @@
+wrap: 0
+clean: 1
+quiet: 1
+char-encoding: utf8
+ascii-chars: 0
+input-xml: 1
+output-html: 1

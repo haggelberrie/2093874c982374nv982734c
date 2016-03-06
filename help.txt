@@ -1,0 +1,7 @@
+# # help.txt
+# 
+# -f		|	update repository
+# -u url	|	feed url
+# -t string | 	grep string
+# -l		|	show links
+#

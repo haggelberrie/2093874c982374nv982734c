@@ -1,0 +1,136 @@
+#!/bin/sh
+
+#
+# 
+#
+VERSION=0.0.1
+NEWS_LOCAL_PATH=${NEWS_LOCAL_PATH:-~/Development/Bash/News}
+NEWS_LAST_UPDATE=$(head -n 1 $NEWS_LOCAL_PATH/repo/update)
+
+color_title='\033[0;32;1m'
+color_desciption='\033[1;37m'
+color_link='\033[1;34m'
+NC='\033[0m'
+
+
+
+function print_help() {
+	echo "news feed 0.1"
+	echo "options:"
+	echo "  -t to set the topic"
+}
+
+
+#RSS REPOSITORY
+NEWS_REPOSITORY=$NEWS_LOCAL_PATH/repo/rss.db
+
+
+function news_print() {
+	print_counter=0
+	while read line; do
+		if [ $print_counter -eq 0 ]; then
+			printf "${color_title}$line${NC}\n"
+		fi
+		if [ $print_counter -eq 1 ]; then
+			printf "${color_link}$line${NC}\n"
+		fi
+		if [ $print_counter -eq 2 ]; then
+			printf "${color_description}$line${NC}\n"
+		fi    
+		print_counter=$(($print_counter+1))
+		if [ $print_counter -eq 3 ]; then
+			printf "\n\n"
+			print_counter=0
+		fi
+	done < $NEWS_LOCAL_PATH/temp/output.feed
+}
+
+function feed_url() {
+	curl --silent $1 | \
+		tidy -wrap 0 -utf8 -xml -q --vertical-space no -o $NEWS_LOCAL_PATH/temp/output_raw.xml
+
+	cat $NEWS_LOCAL_PATH/temp/output_raw.xml | egrep 'title>|description>|link>' | \
+		sed -n '4,$p' | \
+		sed -e 's/<link>//' -e 's/<\/link>//' | \
+		sed -e 's/<title>//' -e 's/<\/title>//' -e 's/<description>//' -e 's/<\/description>//' > $NEWS_LOCAL_PATH/temp/output.feed
+	news_print
+}
+
+#
+# parses all listed news feed urls with given tidy config
+# /repo/rss.db
+#  url	tidy_config
+# tidy_config in /repo/config/'NAME'
+#
+function update_repo() {
+	while read -a src; do
+		profile_template=${src[1]:-default}
+		gap=${src[2]:-4}
+		curl --silent "${src[0]}" | \
+			tidy -config $NEWS_LOCAL_PATH/repo/config/$profile_template | \
+			tail -n +$gap > $NEWS_LOCAL_PATH/repo/data/${src[3]}.xml
+	done < $NEWS_LOCAL_PATH/repo/rss.db
+	date > $NEWS_LOCAL_PATH/repo/update
+}
+
+
+function build_feed() {	
+	touch $NEWS_LOCAL_PATH/temp/output.feed
+	rm $NEWS_LOCAL_PATH/temp/output.feed
+	touch $NEWS_LOCAL_PATH/temp/output.feed
+	while read -a src; do
+		tail -n +${src[2]} $NEWS_LOCAL_PATH/repo/data/${src[3]}.xml | \
+			egrep 'title>|link>' | \
+			sed -e 's/<link>//' -e 's/<\/link>//' | \
+			sed -e 's/<title>//' -e 's/<\/title>//' >> $NEWS_LOCAL_PATH/temp/output.feed
+	done < $NEWS_LOCAL_PATH/repo/rss.db
+}
+
+
+while getopts ":t::u::fa" opt "$@"; do
+	case $opt in
+		f)
+			update_repo
+			;;
+		t)
+			color_title='\033[0;32;1m'
+			color_desciption='\033[1;37m'
+			color_link='\033[1;34m'
+			NC='\033[0m'
+			build_feed
+			cat $NEWS_LOCAL_PATH/temp/output.feed | \
+				sed -e 's/http.*//' | \
+				grep -n -A 1 $OPTARG | cut -f1 -d: | \
+				sed -e 's/--//' -e 's/-//' -e 's/--//' -e '/^\s*$/d' > $NEWS_LOCAL_PATH/temp/search_indicies
+			alternate=0
+			while read index; do
+				if [ $alternate -eq 0 ]; then
+					printf "${color_title}$(sed -n ${index}p $NEWS_LOCAL_PATH/temp/output.feed)${NC}\n"
+					alternate=1
+				else
+					printf "${color_link}$(sed -n ${index}p $NEWS_LOCAL_PATH/temp/output.feed)${NC}\n\n"
+					alternate=0
+			fi
+			done < $NEWS_LOCAL_PATH/temp/search_indicies
+			;;
+		a)
+			build_feed
+			alternate=0
+			while read line; do
+				if [ $alternate -eq 0 ]; then
+					printf "${color_title}${line}${NC}\n"
+		        	alternate=1
+				else
+					printf "${color_link}${line}${NC}\n\n"
+					alternate=0
+				fi
+			done < $NEWS_LOCAL_PATH/temp/output.feed 
+			;;
+		u)
+			feed_url $OPTARG
+			;;
+		\?)
+			echo "bad options"
+			;;
+	esac
+done

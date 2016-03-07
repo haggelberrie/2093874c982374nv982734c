@@ -1,7 +1,21 @@
-# # help.txt
+# Terminal Feedprint (v0.1)
 # 
-# -f		|	update repository
-# -u url	|	feed url
-# -t string | 	grep string
-# -l		|	show links
+#   Insert feed urls and configuration attributes into /repo/rss.db tab seperated
+#   Schema:
+#   	URL	tidy_config_name input_offset identifier name
 #
+#   Config files for tidy stored in /repo/config/, for schema information
+#   view 'tidy -help-config' & file_name = tidy_config_name
+#
+#	Commands applied in given order.
+#
+#   Commands
+#   	-f				forces to refresh all feeds
+#   	-t <string>			search for string in all feeds
+#   	-a				print current feed
+#   	-h				print help
+#   	-l				list rss feed db
+#   	-i <feedid>			print feed given by feedid, see -l
+#   	-o <history>		print history from -s option
+#   	-s <history>		save result to history file stored in /repo/data/recherche
+#   	-O 				list all histories

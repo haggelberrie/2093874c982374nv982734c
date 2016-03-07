@@ -9,7 +9,4 @@ http://www.stern.de/feed/standard/wissen/	default	4	STwissen	Stern/Wissenschaft
 http://rss.cnn.com/rss/edition_europe.rss	default 4	CNNeuro	CNN/Europa
 http://rss.cnn.com/rss/edition.rss	default	4	CNNtop	CNN/TopStories
 http://feeds.feedburner.com/blogspot/rkEL	default 4	posti	Der-Postillion
-http://www.news-aus-baden.de/rss.php?regio=4	baden	4	badenEM	RegionaleEM
-http://www.news-aus-baden.de/rss.php?regio=5	baden	4	badenFR	RegionaleFR
-http://www.news-aus-baden.de/rss.php?bereich=1	baden	4	badenAL	RegionaleALLG
-http://www.news-aus-baden.de/rss.php?bereich=4	baden	4	badenPO	RegionalePOLIZ
+

@@ -3,9 +3,10 @@
 #
 # 
 #
-VERSION=0.0.1
+VERSION=0.1
 NEWS_LOCAL_PATH=${NEWS_LOCAL_PATH:-~/Development/Bash/News}
 NEWS_LAST_UPDATE=$(head -n 1 $NEWS_LOCAL_PATH/repo/update)
+NEWS_REPO=${NEWS_REPO:-rss.db}
 
 color_title='\033[0;32;1m'
 color_desciption='\033[1;37m'
@@ -15,9 +16,7 @@ NC='\033[0m'
 
 
 function print_help() {
-	echo "news feed 0.1"
-	echo "options:"
-	echo "  -t to set the topic"
+	cat $NEWS_LOCAL_PATH/help.txt
 }
 
 
@@ -64,13 +63,15 @@ function feed_url() {
 #
 function update_repo() {
 	while read -a src; do
+		printf "${color_description}Updating: ${NC}${src[4]}\n"
 		profile_template=${src[1]:-default}
 		gap=${src[2]:-4}
 		curl --silent "${src[0]}" | \
 			tidy -config $NEWS_LOCAL_PATH/repo/config/$profile_template | \
 			tail -n +$gap > $NEWS_LOCAL_PATH/repo/data/${src[3]}.xml
-	done < $NEWS_LOCAL_PATH/repo/rss.db
+	done < $NEWS_LOCAL_PATH/repo/$NEWS_REPO
 	date > $NEWS_LOCAL_PATH/repo/update
+	printf "\nUpdate successful\n"
 }
 
 
@@ -83,14 +84,73 @@ function build_feed() {
 			egrep 'title>|link>' | \
 			sed -e 's/<link>//' -e 's/<\/link>//' | \
 			sed -e 's/<title>//' -e 's/<\/title>//' >> $NEWS_LOCAL_PATH/temp/output.feed
-	done < $NEWS_LOCAL_PATH/repo/rss.db
+	done < $NEWS_LOCAL_PATH/repo/$NEWS_REPO
 }
 
+function build_feed_by_id() {
+	touch $NEWS_LOCAL_PATH/temp/output.feed
+	rm $NEWS_LOCAL_PATH/temp/output.feed
+	touch $NEWS_LOCAL_PATH/temp/output.feed
+	tail -n +0 $NEWS_LOCAL_PATH/repo/data/$1.xml | \
+		egrep 'title>|link>' | \
+		sed -e 's/<link>//' -e 's/<\/link>//' | \
+		sed -e 's/<title>//' -e 's/<\/title>//' >> $NEWS_LOCAL_PATH/temp/output.feed
+}
 
-while getopts ":t::u::fa" opt "$@"; do
+function list_repo() {
+	printf "${color_title}name\t\t\tid${NC}\n"
+	while read -a line; do
+	   	printf "${color_link}${line[4]:0:14}\t\t${line[3]}${NC}\n"
+	done < $NEWS_LOCAL_PATH/repo/$NEWS_REPO
+}
+
+function default_print() {
+	alternate=0
+	while read line; do
+		if [ $alternate -eq 0 ]; then
+			printf "${color_title}${line}${NC}\n"
+	    	alternate=1
+		else
+			printf "${color_link}${line}${NC}\n\n"
+			alternate=0
+		fi
+	done < $NEWS_LOCAL_PATH/temp/output.feed 
+}
+
+function save_feed() {
+	touch $NEWS_LOCAL_PATH/repo/data/recherche/$1
+	while read index; do
+		line=$(sed -n ${index}p $NEWS_LOCAL_PATH/temp/output.feed)
+		if grep -q "$line" $NEWS_LOCAL_PATH/repo/data/recherche/$1; then
+			echo ""	
+		else
+			echo $line >> $NEWS_LOCAL_PATH/repo/data/recherche/$1
+		fi
+	done < $NEWS_LOCAL_PATH/temp/search_indicies
+}
+
+function print_history() {
+	cat $NEWS_LOCAL_PATH/repo/data/recherche/$1 > $NEWS_LOCAL_PATH/temp/output.feed
+	default_print
+}
+
+function print_recherches() {
+	ls $NEWS_LOCAL_PATH/repo/data/recherche
+}
+
+while getopts ":t::u::fahli:s:o:O" opt "$@"; do
 	case $opt in
 		f)
 			update_repo
+			;;
+		l)
+			list_repo
+			;;
+		o) 
+			print_history $OPTARG
+			;;
+		O)	
+			print_recherches
 			;;
 		t)
 			color_title='\033[0;32;1m'
@@ -100,7 +160,7 @@ while getopts ":t::u::fa" opt "$@"; do
 			build_feed
 			cat $NEWS_LOCAL_PATH/temp/output.feed | \
 				sed -e 's/http.*//' | \
-				grep -n -A 1 $OPTARG | cut -f1 -d: | \
+				grep -i -n -A 1 $OPTARG | cut -f1 -d: | \
 				sed -e 's/--//' -e 's/-//' -e 's/--//' -e '/^\s*$/d' > $NEWS_LOCAL_PATH/temp/search_indicies
 			alternate=0
 			while read index; do
@@ -115,22 +175,24 @@ while getopts ":t::u::fa" opt "$@"; do
 			;;
 		a)
 			build_feed
-			alternate=0
-			while read line; do
-				if [ $alternate -eq 0 ]; then
-					printf "${color_title}${line}${NC}\n"
-		        	alternate=1
-				else
-					printf "${color_link}${line}${NC}\n\n"
-					alternate=0
-				fi
-			done < $NEWS_LOCAL_PATH/temp/output.feed 
+			default_print
+			;;
+		i)
+			build_feed_by_id $OPTARG
+			default_print
 			;;
 		u)
 			feed_url $OPTARG
 			;;
+		h)
+			print_help
+			;;
+		s)
+			save_feed $OPTARG
+			;;
 		\?)
 			echo "bad options"
+			echo "try 'news -h"
 			;;
 	esac
 done

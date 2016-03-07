@@ -1,0 +1,13 @@
+wrap: 0
+wrap-script-literals: 1
+doctype: strict
+quiet: 1
+literal-attributes: 1
+char-encoding: win1252
+ascii-chars: 1
+input-xml: 1
+output-html: 1
+fix-backslash: 1
+language: de
+indent: 1
+drop-font-tags: 1

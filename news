@@ -1,8 +1,9 @@
 #!/bin/sh
+#
+######################
+# Terminal News Feed #
+######################
 
-#
-# 
-#
 VERSION=0.1
 NEWS_LOCAL_PATH=${NEWS_LOCAL_PATH:-~/Development/Bash/News}
 NEWS_LAST_UPDATE=$(head -n 1 $NEWS_LOCAL_PATH/repo/update)
@@ -13,17 +14,13 @@ color_desciption='\033[1;37m'
 color_link='\033[1;34m'
 NC='\033[0m'
 
-
-
 function print_help() {
 	cat $NEWS_LOCAL_PATH/help.txt
 }
 
-
-#RSS REPOSITORY
-NEWS_REPOSITORY=$NEWS_LOCAL_PATH/repo/rss.db
-
-
+# 
+#
+#
 function news_print() {
 	print_counter=0
 	while read line; do
@@ -137,6 +134,7 @@ function print_history() {
 function print_recherches() {
 	ls $NEWS_LOCAL_PATH/repo/data/recherche
 }
+
 
 while getopts ":t::u::fahli:s:o:O" opt "$@"; do
 	case $opt in

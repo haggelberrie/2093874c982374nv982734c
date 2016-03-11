@@ -19,3 +19,52 @@
 #   	-o <history>		print history from -s option
 #   	-s <history>		save result to history file stored in /repo/data/recherche
 #   	-O 				list all histories
+#
+#
+#
+#
+#   	ToDo:
+#   		- verbesserte suche, mit regex oder und und
+#   		- background mode
+#   		- output korrektur
+#   		    http forciert linebreak, und output darüber, shift(?), 
+#   		- orderstruktur überdenken
+#           - git ignore
+#           - teilmengen print
+#           - head tail, von jedem n viele
+#           - 
+#
+#
+#   	Redesign:
+#   		
+#    ist
+#   		( Repo ) ---- f ----> ( data/xml )  ---- t ----> ( feed_a ) ~~~~~~ ( outputprint = partial(feed_a, searchindicies ) )
+#   											---- a ----> ( feed_a ) ~~~~~~~( default print feed_a )
+#   											---- i(x) ----> ( feed_x ) ~~~~( default_print feed_x )
+#
+#   					( lastfeed last search indicies ) --- s --> store ( 
+#   	
+#
+#    soll
+#    					  on any request or if -u given
+#    		( Repo ) ---- update if last update > config.update_interval minutes ago ---> ( data/xml)	                                    
+#			( data ) --- suche in temp feed, feed dann überschreiben liefert feed_y
+#
+#
+#
+#
+#
+#
+#
+#			neue ordnerstruktur:
+#
+#			./
+#			./data/ {xml files}
+#			./config/{tidy configs}+config ~ json file
+#			./feed ~ current feed
+#			./news ~ exec
+#			./help.md
+#			./recherches/{ sammelfeeds }
+#
+#
+#			
